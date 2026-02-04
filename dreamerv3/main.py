@@ -211,8 +211,9 @@ def make_replay(config, folder, mode='train'):
 
 def make_env(config, index, **overrides):
   suite, task = config.task.split('_', 1)
-  if suite == 'memmaze':
+  if suite in ('memmaze', 'battlecity'):
     from embodied.envs import from_gym
+  if suite == 'memmaze':
     import memory_maze  # noqa
   ctor = {
       'dummy': 'embodied.envs.dummy:Dummy',
