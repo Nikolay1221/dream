@@ -4,7 +4,7 @@ import numpy as np
 import cv2
 from nes_py import NESEnv
 from nes_py.wrappers import JoypadSpace
-from .config import RLConfig
+from config import RLConfig
 
 # Define simple actions: Move and Fire
 # Battle City controls: arrows for movement, A/B for fire.
