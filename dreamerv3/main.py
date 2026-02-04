@@ -229,7 +229,9 @@ def make_env(config, index, **overrides):
       'langroom': 'embodied.envs.langroom:LangRoom',
       'procgen': 'embodied.envs.procgen:ProcGen',
       'bsuite': 'embodied.envs.bsuite:BSuite',
-      'battlecity': 'battle_city_env:BattleCityEnv',
+      'battlecity': lambda task, **kw: from_gym.FromGym(
+          importlib.import_module('battle_city_env').BattleCityEnv(task, **kw),
+          obs_key='image', act_key='action'),
       'memmaze': lambda task, **kw: from_gym.FromGym(
           f'MemoryMaze-{task}-v0', **kw),
   }[suite]
