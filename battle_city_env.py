@@ -147,7 +147,7 @@ class BattleCityEnv(gym.Wrapper):
         # Load Game Over template (REMOVED - Using RAM Logic)
         self.game_over_template = None
             
-        return self._get_obs(), {}
+        return self._get_obs()
 
     def _get_nearest_dist(self):
         """Calculates distance to nearest active enemy."""
@@ -223,6 +223,7 @@ class BattleCityEnv(gym.Wrapper):
 
     def step(self, action):
         # We ignore the pixel observation returned by step
+        # Handle nes-py legacy step
         _, reward, done, info = self.env.step(action)
         
         # Check for Visual Game Over
@@ -379,9 +380,7 @@ class BattleCityEnv(gym.Wrapper):
         info['exploration'] = len(self.visited_cells)
         info['proximity_reward'] = proximity_reward
         
-        truncated = False
-        
-        return self._get_obs(), custom_reward, done, truncated, info
+        return self._get_obs(), custom_reward, done, info
         
     @property
     def render_mode(self):
