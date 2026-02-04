@@ -222,6 +222,12 @@ class BattleCityEnv(gym.Wrapper):
         return False
 
     def step(self, action):
+        # DreamerV3 passes numpy arrays (usually 0-d). 
+        # nes-py Wrappers expect a plain int index for the action list.
+        if hasattr(action, 'item'):
+            action = action.item()
+        action = int(action)
+
         # We ignore the pixel observation returned by step
         # Handle nes-py legacy step
         _, reward, done, info = self.env.step(action)
