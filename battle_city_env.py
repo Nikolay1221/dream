@@ -23,7 +23,7 @@ COMPLEX_MOVEMENT = [
 ]
 
 class BattleCityEnv(gym.Wrapper):
-    def __init__(self, task=None, render_mode=None, is_visible=False, start_level=None):
+    def __init__(self, task=None, render_mode=None, is_visible=False, start_level=None, repeat=1):
         # Create base NES environment
         env = NESEnv(RLConfig.GAME_PATH)
         
@@ -38,10 +38,10 @@ class BattleCityEnv(gym.Wrapper):
         # Store render_mode locally. 
         # We don't set it on env because JoypadSpace might block it (property)
         
-        # Store render_mode locally. 
         self._custom_render_mode = render_mode
         self.is_visible = is_visible
         self.start_level = start_level
+        self.repeat = repeat
         self.metadata = {'render_modes': ['human', 'rgb_array']}
         
         # Observation Space: 128x128 Grayscale (High Res for A100)
@@ -228,9 +228,17 @@ class BattleCityEnv(gym.Wrapper):
             action = action.item()
         action = int(action)
 
-        # We ignore the pixel observation returned by step
-        # Handle nes-py legacy step
-        _, reward, done, info = self.env.step(action)
+        total_reward = 0.0
+        done = False
+        info = {}
+
+        for _ in range(self.repeat):
+            _, reward, d, i = self.env.step(action)
+            total_reward += reward
+            if d:
+                done = True
+                info = i
+                break
         
         # Check for Visual Game Over
         visual_penalty = 0
@@ -373,7 +381,10 @@ class BattleCityEnv(gym.Wrapper):
         self.prev_py = curr_py
             
         # Total reward
-        custom_reward = kill_reward + death_penalty + visual_penalty + exploration_reward + proximity_reward
+        # Note: We sum rewards from repeated steps (handled in loop above for game reward), 
+        # but custom rewards are calculated based on state diff, so they apply once per meta-step.
+        # Actually, kill_reward handles the diff correctly even if multiple kills happened.
+        custom_reward = total_reward + kill_reward + death_penalty + visual_penalty + exploration_reward + proximity_reward
         
         # Update trackers
         self.prev_kills = curr_kills
